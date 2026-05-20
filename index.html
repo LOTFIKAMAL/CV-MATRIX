@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Matrix — Assignment & Training</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f2f1ed;color:#1a1a1a;font-size:14px}
+header{background:#1a2e1a;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+header h1{font-size:17px;font-weight:600}
+header span{font-size:12px;opacity:.6}
+.sync-bar{background:#1558a0;color:#fff;padding:7px 24px;font-size:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4caf50;flex-shrink:0;transition:background .3s}
+.sync-dot.syncing{background:#ff9800;animation:pulse 1s infinite}
+.sync-dot.error{background:#f44336}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.main{max-width:1400px;margin:0 auto;padding:16px}
+.tab-bar{display:flex;gap:2px;margin-bottom:12px;border-bottom:1px solid #d0cfc8;flex-wrap:wrap}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500;white-space:nowrap}
+.tab.active{color:#1a2e1a;border-bottom-color:#2d5a2d}
+.tab:hover:not(.active){color:#333}
+.filter-section{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;border:1px solid #e0dfd8}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}
+.filter-block label{font-size:11px;color:#888;display:block;margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+select,input[type=text],input[type=number],textarea{width:100%;padding:6px 9px;border-radius:7px;border:1px solid #d5d4cc;background:#fafaf8;color:#1a1a1a;font-size:12px;font-family:inherit}
+select:focus,input:focus,textarea:focus{outline:none;border-color:#2d5a2d}
+.search-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.search-wrap{position:relative;flex:1}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:#aaa;fill:none}
+.search-wrap input{padding-left:30px;font-size:13px;padding-top:7px;padding-bottom:7px}
+.exp-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.exp-row label{font-size:11px;color:#888;font-weight:600;white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
+.exp-row input[type=range]{flex:1;accent-color:#2d5a2d}
+.disc-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.disc-pill{font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid #d0cfc8;color:#666;background:#fafaf8;transition:all .15s;font-weight:500}
+.disc-pill:hover{border-color:#2d5a2d;color:#2d5a2d}
+.disc-pill.active{background:#1a2e1a;color:#fff;border-color:#1a2e1a}
+.stats{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.stat{background:#fff;border-radius:8px;padding:8px 14px;font-size:11px;color:#888;border:1px solid #e0dfd8;font-weight:500;flex:1;min-width:80px}
+.stat strong{display:block;font-size:20px;font-weight:700;color:#1a2e1a;line-height:1.1}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.card{background:#fff;border:1px solid #e0dfd8;border-radius:10px;padding:12px 14px;transition:all .15s;position:relative}
+.card:hover{border-color:#2d5a2d;box-shadow:0 2px 8px rgba(45,90,45,.1)}
+.card.selected{border:2px solid #2d5a2d;background:#f8fbf8}
+.card-header{display:flex;align-items:flex-start;gap:9px;margin-bottom:8px;cursor:pointer}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.card-name{font-size:13px;font-weight:600;color:#1a1a1a;line-height:1.2}
+.card-title-text{font-size:11px;color:#888;margin-top:1px;line-height:1.3}
+.check-icon{color:#2d5a2d;font-size:18px;flex-shrink:0;line-height:1}
+.badges{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px;cursor:pointer}
+.badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.bd{background:#e1f5ee;color:#0a5c3a}.bl{background:#e6f1fb;color:#1558a0}.bs{background:#faeeda;color:#7a4d0b}.bg{background:#eaf3de;color:#3b6d11}.br{background:#fcebeb;color:#9b2c2c}
+.skills-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:7px;cursor:pointer}
+.sk{width:28px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.sk-on{background:#2d5a2d;color:#fff}.sk-off{background:#f0f0ec;color:#bbb}
+.scores{display:flex;gap:8px;cursor:pointer}
+.score-item{flex:1}
+.score-lbl{font-size:9px;color:#aaa;margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.score-bg{background:#f0f0ec;border-radius:2px;height:4px;overflow:hidden}
+.score-fill{height:4px;border-radius:2px;background:#2d5a2d}
+.card-foot{margin-top:6px;font-size:10px;color:#aaa;display:flex;justify-content:space-between;cursor:pointer}
+.edit-btn{position:absolute;top:7px;right:7px;background:#f0f0ec;border:1px solid #d5d4cc;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;color:#666;font-family:inherit;opacity:0;transition:opacity .15s}
+.card:hover .edit-btn{opacity:1}
+.edit-btn:hover{background:#e1f5ee;color:#0a5c3a;border-color:#2d5a2d}
+.new-badge{background:#2d5a2d;color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:4px}
+.mod-badge{background:#1558a0;color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:4px}
+.sheet-badge{background:#ef9f27;color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;margin-left:4px}
+.no-results{text-align:center;padding:3rem;color:#aaa;grid-column:1/-1}
+.panel{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;border:1px solid #e0dfd8}
+.panel-title{font-size:14px;font-weight:600;margin-bottom:10px;color:#1a2e1a;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.aff-item{display:flex;align-items:center;gap:8px;background:#f8f8f4;border-radius:8px;padding:8px 10px;margin-bottom:5px;border:1px solid #e8e7e0}
+.aff-name{font-size:13px;font-weight:600}.aff-meta{font-size:11px;color:#888}
+.rm-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;margin-left:auto;line-height:1}
+.rm-btn:hover{color:#e24b4a}
+.pri{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.p-low{background:#eaf3de;color:#3b6d11}.p-med{background:#faeeda;color:#7a4d0b}.p-high{background:#fcebeb;color:#9b2c2c}
+.train-card{background:#fff;border-left:3px solid #ef9f27;border-radius:0 8px 8px 0;padding:8px 12px;margin-bottom:5px;border-top:1px solid #e8e7e0;border-right:1px solid #e8e7e0;border-bottom:1px solid #e8e7e0}
+.cov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin-top:8px}
+.cov-cell{text-align:center;background:#f8f8f4;border-radius:8px;padding:8px 4px;border:1px solid #e8e7e0}
+.manage-table{width:100%;border-collapse:collapse;font-size:12px}
+.manage-table th{background:#f0f0ec;padding:8px 10px;text-align:left;font-weight:700;color:#555;border-bottom:1px solid #ddd;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.manage-table td{padding:7px 10px;border-bottom:.5px solid #eee;vertical-align:middle}
+.manage-table tr:hover td{background:#fafaf8}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:20px 24px;width:min(700px,96vw);max-height:92vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:2px;color:#1a2e1a}
+.modal-name{font-size:12px;color:#888;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-grid .full{grid-column:1/-1}
+.form-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;display:block;margin-bottom:3px}
+.skills-check{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0}
+.skill-chk{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;font-weight:500}
+.skill-chk input{accent-color:#2d5a2d;width:14px;height:14px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid #e8e7e0;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:#1a2e1a;color:#fff}.btn-primary:hover{background:#2d5a2d}
+.btn-secondary{background:#f0f0ec;color:#555;border:1px solid #d5d4cc}.btn-secondary:hover{background:#e8e8e2}
+.btn-warn{background:#faeeda;color:#7a4d0b;border:1px solid #e8c98a}
+.btn-danger{background:#fcebeb;color:#9b2c2c;border:1px solid #f7c1c1}.btn-danger:hover{background:#f7c1c1}
+.btn-sm{padding:4px 9px;font-size:11px}
+.count-badge{background:#1a2e1a;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 7px;margin-left:4px}
+.info-box{font-size:11px;padding:7px 10px;border-radius:6px;margin-bottom:10px}
+.info-green{color:#3b6d11;background:#eaf3de}.info-blue{color:#1558a0;background:#e6f1fb}
+.section-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 CV Matrix — Assignment & Training</h1>
+  <span id="hdr-count">Loading...</span>
+</header>
+<div class="sync-bar">
+  <div class="sync-dot syncing" id="sync-dot"></div>
+  <span id="sync-status">Connecting to shared database...</span>
+  <button onclick="syncNow()" style="margin-left:auto;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px">🔄 Refresh</button>
+</div>
+<div class="main">
+  <div class="tab-bar">
+    <div class="tab active" onclick="showTab('search',this)">🔍 Search & Assign</div>
+    <div class="tab" onclick="showTab('training',this)">🎓 Training & Team <span class="count-badge" id="tc">0</span></div>
+    <div class="tab" onclick="showTab('manage',this)">✏️ Manage Profiles</div>
+  </div>
+
+  <div id="tab-search">
+    <div class="filter-section">
+      <div class="filters">
+        <div class="filter-block"><label>Sector</label>
+          <select id="f-sec" onchange="applyF()"><option value="">All</option><option value="water">💧 Water</option><option value="fert">🌿 Fertilizers</option><option value="energy">⚡ Energy</option><option value="chem">🧪 Chemicals</option></select>
+        </div>
+        <div class="filter-block"><label>Level</label>
+          <select id="f-lev" onchange="applyF()"><option value="">All</option><option>Junior</option><option>Senior</option><option>Expert</option><option>Technician</option></select>
+        </div>
+        <div class="filter-block"><label>Project Role</label>
+          <select id="f-rol" onchange="applyF()"><option value="">All</option><option value="Manager">Manager</option><option value="Lead">Lead</option><option value="Specialist">Specialist</option><option value="Supervisor">Supervisor</option><option value="Engineer">Engineer</option><option value="Technician">Technician</option></select>
+        </div>
+        <div class="filter-block"><label>Skill</label>
+          <select id="f-ski" onchange="applyF()"><option value="">All</option><option value="plc">PLC</option><option value="dcs">DCS</option><option value="hv">HV</option><option value="lv">LV</option><option value="mech">Mechanical</option><option value="proc">Process</option><option value="qa">QA/QC</option><option value="doc">Documentation</option></select>
+        </div>
+        <div class="filter-block"><label>Training Priority</label>
+          <select id="f-trp" onchange="applyF()"><option value="">All</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select>
+        </div>
+        <div class="filter-block"><label>Trainer</label>
+          <select id="f-tra" onchange="applyF()"><option value="">All</option><option value="yes">Yes ✓</option><option value="no">No</option></select>
+        </div>
+      </div>
+      <div class="search-row">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="f-txt" placeholder="Search by name, title, discipline, notes..." oninput="applyF()">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="resetFilters()">↺ Reset</button>
+      </div>
+      <div class="exp-row">
+        <label>Min. Exp.</label>
+        <input type="range" id="f-exp" min="0" max="40" value="0" step="1" oninput="document.getElementById('ev').textContent=this.value+'y';applyF()">
+        <span style="font-size:12px;font-weight:600;min-width:32px" id="ev">0y</span>
+      </div>
+      <div class="disc-pills" id="disc-pills"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><strong id="s-tot">0</strong>Profiles found</div>
+      <div class="stat"><strong id="s-sel">0</strong>Assigned</div>
+      <div class="stat"><strong id="s-tra">0</strong>Trainers</div>
+      <div class="stat"><strong id="s-hi">0</strong>Urgent training</div>
+      <div class="stat"><strong id="s-exp">0</strong>avg. yrs exp.</div>
+    </div>
+    <div class="results" id="results-grid"><div class="no-results">⏳ Loading profiles...</div></div>
+  </div>
+
+  <div id="tab-training" style="display:none">
+    <div class="panel">
+      <div class="panel-title">👥 Assigned Team (<span id="aff-count">0</span> people)
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="exportCSV()">⬇️ Export CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="printTeam()">🖨️ Print</button>
+      </div>
+      <div id="aff-list"><p style="color:#aaa;font-size:13px">No profiles assigned. Click cards in the Search tab.</p></div>
+    </div>
+    <div class="panel"><div class="panel-title">⚠️ Training Needs & Skill Gaps</div><div id="train-list"><p style="color:#aaa;font-size:13px">—</p></div></div>
+    <div class="panel" id="cov-panel" style="display:none"><div class="panel-title">📊 Team Skills Coverage</div><div class="cov-grid" id="cov-grid"></div></div>
+  </div>
+
+  <div id="tab-manage" style="display:none">
+    <div class="panel">
+      <div class="section-bar">
+        <div class="panel-title" style="margin-bottom:0">✏️ All Profiles (<span id="manage-count">0</span>)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" onclick="syncNow()">🔄 Sync</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal(null)">+ Add Profile</button>
+        </div>
+      </div>
+      <p class="info-box info-blue">🔄 Connected to shared Google Sheet — all users see the same data.</p>
+      <p class="info-box info-green">✏️ Edit any profile. New profiles are added to the shared database.</p>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <input type="text" id="manage-search" placeholder="Filter profiles..." oninput="renderManage()" style="max-width:260px">
+        <select id="manage-lev" onchange="renderManage()" style="max-width:140px"><option value="">All levels</option><option>Junior</option><option>Senior</option><option>Expert</option><option>Technician</option></select>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="manage-table"><thead><tr><th>Name</th><th>Discipline</th><th>Level</th><th>Exp.</th><th>Sectors</th><th>Training</th><th>Actions</th></tr></thead><tbody id="manage-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2 id="modal-h2">Add New Profile</h2>
+    <div class="modal-name" id="modal-sub"></div>
+    <div class="form-grid">
+      <div class="form-field full"><label>Full Name *</label><input type="text" id="m-name" placeholder="First LAST"></div>
+      <div class="form-field full"><label>Job Title *</label><input type="text" id="m-title" placeholder="Process Commissioning Specialist"></div>
+      <div class="form-field"><label>Discipline *</label><input type="text" id="m-disc" placeholder="Process, Electrical..."></div>
+      <div class="form-field"><label>Level</label><select id="m-level"><option>Junior</option><option selected>Senior</option><option>Expert</option><option>Technician</option></select></div>
+      <div class="form-field"><label>Years of Experience</label><input type="number" id="m-exp" min="0" max="50" value="5"></div>
+      <div class="form-field"><label>Training Priority</label><select id="m-trp"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select></div>
+      <div class="form-field full"><label>Project Role</label><input type="text" id="m-role" placeholder="Lead, Specialist, Manager..."></div>
+      <div class="form-field full"><label>Activity Sectors</label>
+        <div class="skills-check">
+          <label class="skill-chk"><input type="checkbox" id="m-water"> 💧 Water</label>
+          <label class="skill-chk"><input type="checkbox" id="m-fert"> 🌿 Fertilizers</label>
+          <label class="skill-chk"><input type="checkbox" id="m-energy"> ⚡ Energy</label>
+          <label class="skill-chk"><input type="checkbox" id="m-chem"> 🧪 Chemicals</label>
+        </div>
+      </div>
+      <div class="form-field full"><label>Technical Skills</label>
+        <div class="skills-check">
+          <label class="skill-chk"><input type="checkbox" id="m-lv"> LV</label>
+          <label class="skill-chk"><input type="checkbox" id="m-hv"> HV</label>
+          <label class="skill-chk"><input type="checkbox" id="m-plc"> PLC</label>
+          <label class="skill-chk"><input type="checkbox" id="m-dcs"> DCS</label>
+          <label class="skill-chk"><input type="checkbox" id="m-mech"> Mechanical</label>
+          <label class="skill-chk"><input type="checkbox" id="m-proc"> Process</label>
+          <label class="skill-chk"><input type="checkbox" id="m-qa"> QA/QC</label>
+          <label class="skill-chk"><input type="checkbox" id="m-doc"> Documentation</label>
+        </div>
+      </div>
+      <div class="form-field"><label>Commissioning (1-5) — <span id="lbl-com">3</span></label><input type="range" id="m-com" min="1" max="5" value="3" oninput="document.getElementById('lbl-com').textContent=this.value" style="accent-color:#2d5a2d"></div>
+      <div class="form-field"><label>Startup (1-5) — <span id="lbl-start">3</span></label><input type="range" id="m-start" min="1" max="5" value="3" oninput="document.getElementById('lbl-start').textContent=this.value" style="accent-color:#2d5a2d"></div>
+      <div class="form-field"><label>Leadership (1-5) — <span id="lbl-lead">3</span></label><input type="range" id="m-lead" min="1" max="5" value="3" oninput="document.getElementById('lbl-lead').textContent=this.value" style="accent-color:#2d5a2d"></div>
+      <div class="form-field"><label>Trainer Potential</label><select id="m-trainer"><option value="false">No</option><option value="true">Yes</option></select></div>
+      <div class="form-field full"><label>Skill Gap</label><input type="text" id="m-gap" placeholder="e.g. Leadership, Digital tools..."></div>
+      <div class="form-field full"><label>Notes</label><textarea id="m-notes" rows="2" placeholder="Strengths, remarks..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProfile()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpsv0WA0i2u7zDrwyOb0v51-h0isHiMQokHJ__shTmyZmFyPgBBHgExevEGI3x9uzM/exec';
+
+// ===== BASE DATA (163 profiles) =====
+var BASE=[{"id":"CV001","name":"Othmane ABABOURD","title":"E&I Commissioning Specialist","disc":"E&I","level":"Senior","exp":7,"sectors":["water","fert","chem"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":2,"role":"Commissioning Engineer","gap":"Leadership","trainPri":"Medium","trainer":false,"notes":"Strong field execution"},{"id":"CV002","name":"El Mahjoub ABDAOUI","title":"Process Commissioning Specialist","disc":"Process","level":"Expert","exp":40,"sectors":["water","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Specialist","gap":"Digital/Automation","trainPri":"Medium","trainer":true,"notes":"Very strong operations and process background"},{"id":"CV003","name":"Abdulla SHARIFF","title":"Mechanical Commissioning Specialist","disc":"Mechanical","level":"Senior","exp":10,"sectors":["chem"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Water process exposure","trainPri":"Medium","trainer":true,"notes":"Oil & gas heavy mechanical profile"},{"id":"CV004","name":"Abhishek UTTAM","title":"Commissioning Manager (Process)","disc":"Process","level":"Expert","exp":16,"sectors":["fert","chem"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Manager","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Top process commissioning management"},{"id":"CV005","name":"Mohammed ABOUDAFIR","title":"Electrical Commissioning Specialist","disc":"Electrical","level":"Senior","exp":15,"sectors":["water","chem","energy"],"lv":1,"hv":1,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Specialist","gap":"Process","trainPri":"Medium","trainer":true,"notes":"Strong HV/LV"},{"id":"CV006","name":"Salah Eddine ADDI","title":"Mechanical Commissioning Specialist","disc":"Mechanical","level":"Senior","exp":9,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"System integration","trainPri":"Medium","trainer":false,"notes":"Desalination mechanical profile"},{"id":"CV007","name":"Hamza AIT BABLAL","title":"Electrical Commissioning Engineer","disc":"Electrical","level":"Junior","exp":1,"sectors":["energy"],"lv":1,"hv":1,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":2,"start":1,"lead":1,"role":"Engineer","gap":"Field experience","trainPri":"High","trainer":false,"notes":"Junior but good electrical design basis"},{"id":"CV008","name":"Mohamed AIT BAIH","title":"Process / Utilities Lead","disc":"Process","level":"Senior","exp":10,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":3,"start":3,"lead":4,"role":"Lead","gap":"Commissioning execution depth","trainPri":"Medium","trainer":true,"notes":"Strong utilities and operations manager"},{"id":"CV009","name":"Hafid AIT TALEB","title":"Completion Specialist","disc":"Civil/Structural","level":"Senior","exp":15,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":1,"com":4,"start":2,"lead":4,"role":"Lead","gap":"Process","trainPri":"Medium","trainer":false,"notes":"Strong non-process completion profile"},{"id":"CV010","name":"Abderrazak AITOUARAZ","title":"Commissioning QA/QC Specialist","disc":"Multi","level":"Senior","exp":17,"sectors":["water","fert","chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":4,"start":2,"lead":4,"role":"Supervisor","gap":"Execution depth","trainPri":"Medium","trainer":false,"notes":"Very useful for turnover and QA/completion"},{"id":"CV011","name":"Hassan KHANDAF","title":"QA/QC Commissioning Specialist","disc":"Mechanical/QA","level":"Senior","exp":13,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":3,"role":"Specialist","gap":"Hands-on commissioning","trainPri":"Medium","trainer":false,"notes":"Good for QA/QC and docs"},{"id":"CV012","name":"Amagui ABDERRAZZAK","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":9,"sectors":["water"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":2,"role":"Commissioning Engineer","gap":"Leadership","trainPri":"Medium","trainer":false,"notes":"Solid instrumentation execution profile"},{"id":"CV013","name":"Abderrahim AMIL","title":"Instrumentation Lead","disc":"Instrumentation","level":"Senior","exp":20,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":4,"role":"Lead","gap":"Digital systems","trainPri":"Medium","trainer":true,"notes":"Strong OCP instrumentation background"},{"id":"CV014","name":"Achraf ANFOUSSI","title":"Commissioning Manager","disc":"Process","level":"Expert","exp":19,"sectors":["chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Manager","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Mega-project manager profile"},{"id":"CV015","name":"Thareeque ANVAR BASHEER","title":"Principal Process Commissioning Specialist","disc":"Process","level":"Expert","exp":12,"sectors":["water","chem","energy"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":1,"com":5,"start":5,"lead":4,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"High-value desalination expert"},{"id":"CV016","name":"Achraf AOUIDATE","title":"Electrical Commissioning Specialist","disc":"Electrical","level":"Senior","exp":9,"sectors":["water","chem","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Supervisor","gap":"Process","trainPri":"Medium","trainer":false,"notes":"Good construction-to-commissioning bridge"},{"id":"CV017","name":"Arivazhagan SELVARAJAN","title":"DCS Commissioning Specialist","disc":"Process/Automation","level":"Senior","exp":23,"sectors":["fert","chem"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Water","trainPri":"Medium","trainer":true,"notes":"Strong process control and DCS background"},{"id":"CV018","name":"Abdelaziz ATFAOUI","title":"Commissioning Specialist (Multi)","disc":"Multi","level":"Senior","exp":3,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":2,"role":"Commissioning Engineer","gap":"Deep specialization","trainPri":"High","trainer":false,"notes":"Good completion/quality coordination support"},{"id":"CV019","name":"Youssef ATTAYA","title":"Electrical Technician","disc":"Electrical","level":"Technician","exp":14,"sectors":["energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":3,"start":2,"lead":2,"role":"Technician","gap":"Engineering/leadership","trainPri":"Medium","trainer":false,"notes":"Strong hands-on electrical execution profile"},{"id":"CV021","name":"Elhoussine AZATOTAI","title":"Senior Mechanical Commissioning Specialist","disc":"Mechanical","level":"Senior","exp":15,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Automation/Process","trainPri":"Medium","trainer":false,"notes":"Mechanical testing and procedure development"},{"id":"CV022","name":"Samad AZHAR","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Expert","exp":16,"sectors":["water","fert","chem"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"Advanced process optimization","trainPri":"Medium","trainer":true,"notes":"Strong OCP process familiarity"},{"id":"CV023","name":"Mohammed Amine AZRAK","title":"E&I Commissioning Supervisor","disc":"E&I","level":"Senior","exp":13,"sectors":["water","energy"],"lv":1,"hv":1,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Supervisor","gap":"Process","trainPri":"Medium","trainer":false,"notes":"Water/Energy E&I supervisor"},{"id":"CV024","name":"Aimad AZZA","title":"Automation Commissioning Specialist","disc":"Automation","level":"Senior","exp":7,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Heavy field commissioning","trainPri":"Medium","trainer":true,"notes":"Strong automation/control engineer"},{"id":"CV025","name":"Adil BAIDA","title":"Electrical Commissioning Specialist","disc":"Electrical","level":"Senior","exp":12,"sectors":["water","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Specialist","gap":"Process","trainPri":"Medium","trainer":true,"notes":"Excellent MV/HV testing profile"},{"id":"CV026","name":"Balakrishnan MUTHUSAMY","title":"E&I Commissioning Specialist","disc":"E&I","level":"Senior","exp":14,"sectors":["energy"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Water/Fertilizers","trainPri":"Medium","trainer":true,"notes":"Strong offshore E&I commissioning profile"},{"id":"CV027","name":"Mimoun BEKKAOUI","title":"Mechanical Commissioning Specialist","disc":"Mechanical","level":"Expert","exp":35,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":4,"role":"Lead","gap":"Modern digital tools","trainPri":"Medium","trainer":true,"notes":"Veteran OCP mechanical profile"},{"id":"CV028","name":"Hicham BELHIMER","title":"Electrical Commissioning Specialist","disc":"Electrical","level":"Senior","exp":14,"sectors":["water","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Process","trainPri":"Medium","trainer":false,"notes":"Good electrical commissioning profile"},{"id":"CV029","name":"Hassan BELKHAY","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":8,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":3,"start":3,"lead":2,"role":"Commissioning Engineer","gap":"Experience depth","trainPri":"High","trainer":false,"notes":"I&C execution profile"},{"id":"CV030","name":"Farid BELLAGHZILIA","title":"Commissioning Manager","disc":"Electrical","level":"Expert","exp":13,"sectors":["fert","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Manager","gap":"None critical","trainPri":"Low","trainer":true,"notes":"High-value energy commissioning leader"},{"id":"CV031","name":"Mehdi BELMOKADEM","title":"Completion Specialist (Documentation)","disc":"Documentation/QA","level":"Senior","exp":12,"sectors":["water","fert","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":3,"start":1,"lead":2,"role":"Specialist","gap":"Execution depth","trainPri":"Medium","trainer":false,"notes":"Strong digital/documentation turnover support"},{"id":"CV032","name":"Jamal BENDIOURI","title":"Mechanical Commissioning Lead","disc":"Mechanical","level":"Senior","exp":15,"sectors":["water","fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Lead","gap":"Automation","trainPri":"Medium","trainer":true,"notes":"Strong mechanical lead for desalination"},{"id":"CV033","name":"Khalid BENGHENNOU","title":"Electrical Commissioning Specialist","disc":"Electrical","level":"Senior","exp":12,"sectors":["water","fert"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Process","trainPri":"Medium","trainer":false,"notes":"Solid electrical site manager background"},{"id":"CV034","name":"Abdelmalek BENHAIDA","title":"Electrical Commissioning Supervisor","disc":"Electrical","level":"Senior","exp":25,"sectors":["water","fert","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Supervisor","gap":"Documentation detail","trainPri":"Medium","trainer":true,"notes":"Long OCP electrical/startup history"},{"id":"CV035","name":"Abdeslam BERNICHA","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":11,"sectors":["water","fert"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Advanced digital systems","trainPri":"Medium","trainer":false,"notes":"Good instrumentation supervision profile"},{"id":"CV036","name":"Salaheddine BERRADI","title":"Multi Commissioning Specialist","disc":"Multi","level":"Senior","exp":10,"sectors":[],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":3,"start":2,"lead":3,"role":"Supervisor","gap":"Sector breadth","trainPri":"High","trainer":false,"notes":"Specialized mainly in firefighting systems"},{"id":"CV037","name":"Fouad BESSAK","title":"Mechanical Commissioning Specialist","disc":"Mechanical","level":"Expert","exp":40,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Modern tools/documentation","trainPri":"Medium","trainer":true,"notes":"Retired OCP mechanical/conveyor expert"},{"id":"CV038","name":"Hamza BOUBKER","title":"Process Commissioning Specialist","disc":"Process","level":"Senior","exp":6,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Energy/Water exposure","trainPri":"Medium","trainer":true,"notes":"Strong minerals/process commissioning"},{"id":"CV039","name":"Abidine BOUDDI","title":"Process Commissioning Supervisor","disc":"Process","level":"Senior","exp":10,"sectors":["water","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Supervisor","gap":"Advanced automation","trainPri":"Medium","trainer":true,"notes":"Good water process supervisor"},{"id":"CV040","name":"Ivan Muela BUSTAMANTE","title":"Principal Completion & Commissioning Specialist","disc":"Process/Multi","level":"Senior","exp":10,"sectors":["water","fert","energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Lead","gap":"Leadership coordination","trainPri":"Medium","trainer":true,"notes":"Multi-discipline commissioning profile"},{"id":"CV041","name":"Abdelkhalek CHABAB","title":"Principal Commissioning Specialist (Sulfuric Acid)","disc":"Process","level":"Expert","exp":37,"sectors":["fert","chem"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"Digital / automation","trainPri":"Medium","trainer":true,"notes":"Critical OCP sulfuric acid profile"},{"id":"CV042","name":"Mohammed CHADLI","title":"Senior Process Commissioning Specialist","disc":"Process","level":"Senior","exp":12,"sectors":["water","energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strong water and power chemistry/process profile"},{"id":"CV043","name":"Yahya CHARJAOUI","title":"Mechanical & Piping Commissioning Engineer","disc":"Mechanical","level":"Senior","exp":1,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":3,"start":2,"lead":2,"role":"Engineer","gap":"Experience","trainPri":"High","trainer":false,"notes":"Young mechatronics profile on desalination project"},{"id":"CV044","name":"Mohamed Adib CHERRAD","title":"Completion & Commissioning Area Manager","disc":"Multi","level":"Senior","exp":12,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":1,"com":5,"start":5,"lead":5,"role":"Manager","gap":"None critical","trainPri":"Low","trainer":true,"notes":"High-value commissioning manager profile"},{"id":"CV045","name":"Mustapha CHIBA","title":"Senior Electrical Commissioning Specialist","disc":"Electrical","level":"Expert","exp":22,"sectors":["water","fert","chem","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"Process","trainPri":"Medium","trainer":true,"notes":"Very strong international electrical profile"},{"id":"CV046","name":"Brahim CHNITFA","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":7,"sectors":["water","fert"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Commissioning Engineer","gap":"Experience depth","trainPri":"Medium","trainer":false,"notes":"Good instrumentation execution in desalination"},{"id":"CV047","name":"CHOKRI ZAKARIA","title":"WWTP Program Lead","disc":"Mechanical","level":"Senior","exp":17,"sectors":["water","fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"Automation","trainPri":"Medium","trainer":true,"notes":"WWTP lead and desalination SME profile"},{"id":"CV048","name":"Omar CHOUANE","title":"Completion & Commissioning Specialist (E&I)","disc":"Electrical/QA","level":"Senior","exp":13,"sectors":["water","fert"],"lv":1,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":4,"start":3,"lead":3,"role":"Commissioning Engineer","gap":"Deep commissioning specialization","trainPri":"Medium","trainer":false,"notes":"Useful quality/completion bridge profile"},{"id":"CV049","name":"Mohamed CHTIOUI","title":"Process Commissioning Engineer","disc":"Process","level":"Senior","exp":7,"sectors":["water","fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Commissioning Engineer","gap":"Experience depth","trainPri":"Medium","trainer":true,"notes":"Strong young process engineer profile"},{"id":"CV050","name":"Hamza DAOUBI","title":"Process Commissioning Lead","disc":"Process","level":"Senior","exp":8,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Lead","gap":"Fertilizers","trainPri":"Medium","trainer":true,"notes":"Strong water treatment manager profile"},{"id":"CV051","name":"Darshankumar PATEL","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":10,"sectors":["fert","chem","energy"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Water","trainPri":"Medium","trainer":true,"notes":"Strong oil/gas and chemical instrumentation profile"},{"id":"CV052","name":"Ahmed DERFAOUI","title":"Mechanical Commissioning Supervisor","disc":"Mechanical","level":"Expert","exp":40,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Supervisor","gap":"Digital / automation","trainPri":"Medium","trainer":true,"notes":"Veteran OCP ammonia/process commissioning profile"},{"id":"CV053","name":"Dessappan GAJENDIRAN","title":"Senior Mechanical Commissioning Engineer","disc":"Mechanical","level":"Expert","exp":28,"sectors":["chem"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Lead","gap":"Water/Fertilizers","trainPri":"Medium","trainer":true,"notes":"Heavy petrochemical mechanical commissioning specialist"},{"id":"CV054","name":"Samir DGUIG","title":"Process Commissioning Specialist","disc":"Process","level":"Expert","exp":36,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Lead","gap":"Digital / modern tools","trainPri":"Medium","trainer":true,"notes":"Long OCP/JESA process startup experience"},{"id":"CV055","name":"Youssef BOUDRAA","title":"Completion & Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":9,"sectors":["water","fert"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Commissioning Engineer","gap":"Leadership / system integration","trainPri":"Medium","trainer":false,"notes":"Good instrumentation field profile"},{"id":"CV056","name":"Abdelouadoud BOUHRIR","title":"Process Commissioning Specialist","disc":"Process","level":"Junior","exp":5,"sectors":["water","fert","chem"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":3,"start":3,"lead":2,"role":"Engineer","gap":"Field commissioning depth","trainPri":"High","trainer":false,"notes":"Promising young process profile"},{"id":"CV057","name":"Yassine BOUKHDICH","title":"Instrumentation Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":12,"sectors":["fert","energy"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":1,"doc":0,"com":4,"start":4,"lead":4,"role":"Lead","gap":"Process","trainPri":"Medium","trainer":true,"notes":"Strong instrumentation leader profile"},{"id":"CV058","name":"Noureddine BOUZIDI","title":"Commissioning Supervisor","disc":"Mechanical","level":"Expert","exp":32,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Supervisor","gap":"Digital / automation","trainPri":"Medium","trainer":true,"notes":"Very experienced OCP/Jacobs commissioning supervisor"},{"id":"CV059","name":"Ayoub EL AHRACHE","title":"Senior C&C Specialist (I&C Lead)","disc":"Instrumentation","level":"Senior","exp":14,"sectors":["fert","chem","energy"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strong I&C lead profile"},{"id":"CV060","name":"Othmane EL AHRACHE","title":"Senior I&C Commissioning Specialist","disc":"Instrumentation","level":"Expert","exp":20,"sectors":["fert","chem","energy"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strategic I&C expert and trainer"},{"id":"CV061","name":"Abdelmounim EL ALJI","title":"Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":8,"sectors":["fert"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Automation","trainPri":"Medium","trainer":false,"notes":"Good electrical commissioning with 60kV substation"},{"id":"CV062","name":"Youssef EL ALMI","title":"C&C Specialist (Electrical/I&C)","disc":"Electrical","level":"Senior","exp":10,"sectors":["fert"],"lv":1,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Automation depth","trainPri":"Medium","trainer":false,"notes":"Useful E&I execution profile"},{"id":"CV063","name":"Taoufik EL AMRANI","title":"Senior C&C Specialist (I&C)","disc":"Instrumentation","level":"Senior","exp":15,"sectors":["water","energy"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Specialist","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strong I&C profile from power/water"},{"id":"CV064","name":"Khadija EL AMRI","title":"Process Commissioning Engineer","disc":"Process","level":"Junior","exp":4,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":3,"start":2,"lead":2,"role":"Engineer","gap":"Field experience","trainPri":"High","trainer":false,"notes":"Young process profile"},{"id":"CV065","name":"Mohammed EL ATCHI","title":"Mechanical Commissioning Supervisor","disc":"Mechanical","level":"Senior","exp":35,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Supervisor","gap":"Digital tools","trainPri":"Medium","trainer":true,"notes":"Critical veteran mechanical commissioning supervisor"},{"id":"CV066","name":"Abdelmoughit EL AYDI","title":"Process & Mechanical Lead C&C","disc":"Process","level":"Senior","exp":9,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strong integrated process/mechanical lead"},{"id":"CV067","name":"Abdeslam EL FAKRAOUI","title":"Commissioning Supervisor","disc":"Mechanical","level":"Senior","exp":38,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Supervisor","gap":"Digital/automation","trainPri":"Medium","trainer":true,"notes":"Very experienced OCP/JESA commissioning supervisor"},{"id":"CV068","name":"Taoufiq EL FEKKAKI","title":"Electrical C&C Specialist","disc":"Electrical","level":"Junior","exp":3,"sectors":["fert"],"lv":1,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":3,"start":2,"lead":2,"role":"Engineer","gap":"Experience depth","trainPri":"High","trainer":false,"notes":"Developing electrical commissioning profile"},{"id":"CV069","name":"Maryem EL FENNANE","title":"C&C Specialist (Coordination/Planning)","disc":"Project Control","level":"Senior","exp":4,"sectors":["water","fert","chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":3,"role":"Coordinator","gap":"Execution depth","trainPri":"Medium","trainer":false,"notes":"Strong project control/completion coordination profile"},{"id":"CV070","name":"Soufiane EL GASSIMI","title":"I&C Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":10,"sectors":["water","fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"None critical","trainPri":"Low","trainer":false,"notes":"Good I&C commissioning profile"},{"id":"CV071","name":"Abdellaziz EL GLAOUI","title":"I&C Commissioning Supervisor","disc":"Instrumentation","level":"Senior","exp":40,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Supervisor","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Highly experienced I&C supervisor"},{"id":"CV072","name":"Yassine ELHABACHI","title":"Electrical Commissioning Specialist","disc":"Electrical","level":"Senior","exp":7,"sectors":["energy"],"lv":1,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Process exposure","trainPri":"Medium","trainer":false,"notes":"Good renewable energy and solar commissioning profile"},{"id":"CV073","name":"Salah Eddine EL JABARI","title":"C&C Specialist","disc":"Multi","level":"Junior","exp":4,"sectors":["water","fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":1,"doc":1,"com":3,"start":3,"lead":2,"role":"Engineer","gap":"Experience/deep specialization","trainPri":"Medium","trainer":false,"notes":"Useful completion/quality support profile"},{"id":"CV074","name":"Rachid ELKAMILI","title":"Senior Fire & Gas Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":15,"sectors":["fert","energy"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Rare international F&G commissioning expert"},{"id":"CV075","name":"Mohamed EL KHALFI","title":"Senior Electrical & Automation Specialist","disc":"Electrical","level":"Senior","exp":8,"sectors":["water","energy"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strong electrical/automation lead for desalination"},{"id":"CV076","name":"Outman EL MESSAOUDI","title":"Lead C&C Specialist","disc":"Electrical","level":"Senior","exp":5,"sectors":["water"],"lv":1,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Lead","gap":"Experience depth","trainPri":"Medium","trainer":true,"notes":"Promising lead profile"},{"id":"CV077","name":"Radia EL MESTOUR","title":"Senior Process C&C Specialist","disc":"Process","level":"Senior","exp":7,"sectors":["water","fert","chem"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"High-value senior process commissioning"},{"id":"CV078","name":"Ayoub EL MOUATASSIM","title":"Associate C&C Specialist (Electrical)","disc":"Electrical","level":"Junior","exp":1,"sectors":["water"],"lv":1,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":3,"start":2,"lead":2,"role":"Engineer","gap":"Field experience","trainPri":"High","trainer":false,"notes":"Very good potential profile"},{"id":"CV079","name":"Yassine EL OUARDAGHI","title":"Completion & Commissioning Specialist Process","disc":"Process","level":"Senior","exp":6,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Leadership depth","trainPri":"Medium","trainer":true,"notes":"Strong process execution profile"},{"id":"CV080","name":"Houssam ELBARHDADI","title":"Production Supervisor / Commissioning","disc":"Process","level":"Senior","exp":13,"sectors":["fert","energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":0,"proc":1,"qa":0,"doc":0,"com":4,"start":5,"lead":3,"role":"Supervisor","gap":"Formal commissioning management","trainPri":"Medium","trainer":true,"notes":"Critical operations/startup profile"},{"id":"CV081","name":"Samir EL BOUDI","title":"Senior Mechanical C&C Specialist","disc":"Mechanical","level":"Senior","exp":13,"sectors":["water","fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"Process/automation","trainPri":"Medium","trainer":true,"notes":"Strong desalination mechanical lead"},{"id":"CV082","name":"Noureddine ELFAHMI","title":"Instrumentation C&C Specialist","disc":"Instrumentation","level":"Senior","exp":11,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Advanced DCS/leadership","trainPri":"Medium","trainer":false,"notes":"Solid instrumentation commissioning support"},{"id":"CV083","name":"Keltoum ELKORTOBI","title":"Completion & Commissioning Specialist Process","disc":"Process","level":"Junior","exp":3,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":1,"com":3,"start":3,"lead":2,"role":"Engineer","gap":"Experience depth","trainPri":"High","trainer":false,"notes":"Good future process engineer"},{"id":"CV084","name":"Mustapha ELQUORTASSE","title":"Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":12,"sectors":["water"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Leadership breadth","trainPri":"Medium","trainer":false,"notes":"Reliable field electrical commissioning profile"},{"id":"CV085","name":"Abdallah EN-NABIRHA","title":"Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":14,"sectors":["water","fert"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Specialist","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Key electrical/substation profile"},{"id":"CV086","name":"Soufiane ENNABIRHA","title":"Principal C&C Specialist (E&I)","disc":"E&I","level":"Senior","exp":12,"sectors":["water","fert"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strategic E&I profile"},{"id":"CV087","name":"Imad ENNAIR","title":"Associate C&C Specialist Process","disc":"Process","level":"Junior","exp":1,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":3,"start":2,"lead":2,"role":"Engineer","gap":"Field experience","trainPri":"High","trainer":false,"notes":"Young RO/desalination process profile"},{"id":"CV088","name":"Mohamed EZZ","title":"Completion & Commissioning Lead","disc":"Process","level":"Senior","exp":6,"sectors":["water","fert","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":1,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Complete commissioning lead"},{"id":"CV089","name":"Azeddine EZZAARI","title":"Senior Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":10,"sectors":["water","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Specialist","gap":"Process/automation depth","trainPri":"Medium","trainer":true,"notes":"Strong electrical profile with WWTP/desalination"},{"id":"CV090","name":"Youssef EZZAHRAOUI","title":"Senior Water C&C Specialist","disc":"Process","level":"Senior","exp":15,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Top water expert"},{"id":"CV092","name":"Hicham EZZEFIRI","title":"Senior Fire & Safety C&C Specialist","disc":"Fire/Safety","level":"Senior","exp":25,"sectors":["energy"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"OCP local exposure","trainPri":"Medium","trainer":true,"notes":"Rare international fire systems expert"},{"id":"CV093","name":"Loubna FARAJI","title":"Completion / Project Control Specialist","disc":"Project Control","level":"Senior","exp":15,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":4,"role":"Coordinator","gap":"Technical execution depth","trainPri":"Medium","trainer":false,"notes":"Strong project control/completion support"},{"id":"CV094","name":"Abdellatif FELLAHI","title":"Instrumentation C&C Specialist","disc":"Instrumentation","level":"Expert","exp":11,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Specialist","gap":"Documentation/digital tools","trainPri":"Medium","trainer":true,"notes":"Very reliable OCP instrumentation commissioning profile"},{"id":"CV095","name":"Hassan FOUZANE","title":"Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":7,"sectors":["water"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Leadership/experience depth","trainPri":"Medium","trainer":false,"notes":"Good electrical execution profile"},{"id":"CV096","name":"Ganesh RUPCHAND PAWAR","title":"Process Commissioning Manager","disc":"Process","level":"Expert","exp":15,"sectors":["fert","chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Manager","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Mega process commissioning expert"},{"id":"CV097","name":"Abdelhadi GHANBOURI","title":"C&C Specialist (Instrumentation)","disc":"Instrumentation","level":"Junior","exp":5,"sectors":["water"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":3,"start":3,"lead":2,"role":"Engineer","gap":"Experience/leadership","trainPri":"High","trainer":false,"notes":"Good junior/medior instrumentation profile"},{"id":"CV098","name":"Mustapha GHAYATI","title":"Senior Process C&C Specialist - Desalination","disc":"Process","level":"Expert","exp":20,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"TOP desalination expert"},{"id":"CV099","name":"Arun GOPALARATHINAM","title":"C&C Specialist / Commissioning Manager","disc":"Process","level":"Senior","exp":15,"sectors":["chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":1,"com":5,"start":5,"lead":5,"role":"Manager","gap":"Morocco/OCP local context","trainPri":"Medium","trainer":true,"notes":"Strong manager profile"},{"id":"CV100","name":"Abderrahmane GOUAHMANE","title":"Senior Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":7,"sectors":["water","fert"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Leadership depth","trainPri":"Medium","trainer":false,"notes":"Good MV/LV field profile"},{"id":"CV101","name":"Abdelmjid HABCHI","title":"C&C Specialist - Instrumentation","disc":"Instrumentation","level":"Expert","exp":27,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":4,"role":"Specialist","gap":"Digital tools","trainPri":"Medium","trainer":true,"notes":"Very strong OCP instrumentation history"},{"id":"CV102","name":"El Mehdi HABIBALLAH","title":"Senior C&C Specialist - Energy / Automation","disc":"Electrical","level":"Senior","exp":10,"sectors":["energy"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":4,"role":"Lead","gap":"Water/Fertilizers exposure","trainPri":"Medium","trainer":true,"notes":"Strong renewable energy/PV profile"},{"id":"CV103","name":"Ahmed HADIJI","title":"Completion Manager","disc":"Multi","level":"Expert","exp":18,"sectors":["water","fert","chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":4,"start":4,"lead":5,"role":"Manager","gap":"Process field execution","trainPri":"Low","trainer":true,"notes":"Strategic completion systems expert"},{"id":"CV104","name":"Said HAJJAMI","title":"Principal C&C Specialist - Electrical","disc":"Electrical","level":"Expert","exp":15,"sectors":["water","fert","energy"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Complete electrical profile"},{"id":"CV105","name":"Abdelilah HAMOUCHI","title":"Senior Electrical Commissioning Engineer","disc":"Electrical","level":"Expert","exp":39,"sectors":["energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"Modern digital reporting","trainPri":"Medium","trainer":true,"notes":"Rare ultra-expert substation profile"},{"id":"CV106","name":"Khalid HARISSI","title":"C&C Specialist - Electrical / HVAC","disc":"Electrical","level":"Senior","exp":12,"sectors":["fert"],"lv":1,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":1,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"High-voltage depth","trainPri":"Medium","trainer":false,"notes":"Multi-technical coordination profile"},{"id":"CV107","name":"Mohamed HEGAZI","title":"C&C Manager","disc":"Multi","level":"Expert","exp":25,"sectors":["chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":1,"doc":1,"com":5,"start":5,"lead":5,"role":"Manager","gap":"OCP local context","trainPri":"Low","trainer":true,"notes":"Mega-profile international EPC"},{"id":"CV108","name":"Nadia HILAFI","title":"Senior C&C Specialist","disc":"Process","level":"Senior","exp":8,"sectors":["energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Leadership depth","trainPri":"Medium","trainer":false,"notes":"Good startup and DCS/CCR profile"},{"id":"CV109","name":"Mohamed Amine HNINI","title":"C&C Specialist - Instrumentation / Automation","disc":"Instrumentation","level":"Senior","exp":8,"sectors":["fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Process understanding","trainPri":"Medium","trainer":false,"notes":"Strong field instrumentation profile"},{"id":"CV110","name":"Abdelkarim HOUAOUI","title":"Senior C&C Specialist - Electrical / Automation","disc":"Electrical","level":"Expert","exp":20,"sectors":["fert","energy"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Very complete electrical/automation management"},{"id":"CV111","name":"Abderrahim IDAHMED","title":"Senior C&C Specialist - I&C","disc":"Instrumentation","level":"Senior","exp":8,"sectors":["water","fert"],"lv":0,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Leadership depth","trainPri":"Medium","trainer":false,"notes":"Good I&C and automation field profile"},{"id":"CV112","name":"Said IDRISSI SERGHINI","title":"I&C Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":9,"sectors":["water"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Advanced DCS depth","trainPri":"Medium","trainer":false,"notes":"Good desalination instrumentation profile"},{"id":"CV113","name":"Saad IKHALJAN","title":"Process C&C Lead","disc":"Process","level":"Senior","exp":8,"sectors":["water","fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":1,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Lead","gap":"Advanced automation","trainPri":"Medium","trainer":true,"notes":"Strong process commissioning lead profile"},{"id":"CV114","name":"Salah-Eddine ISSAD","title":"I&C Specialist","disc":"Instrumentation","level":"Senior","exp":7,"sectors":["water"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":3,"role":"Specialist","gap":"Experience depth","trainPri":"Medium","trainer":false,"notes":"Good water instrumentation profile"},{"id":"CV115","name":"Said JABBAR","title":"Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":10,"sectors":["energy"],"lv":1,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"HV field depth","trainPri":"Medium","trainer":false,"notes":"Good coordination/reporting profile"},{"id":"CV116","name":"Imane JABBOUR","title":"C&C Specialist","disc":"Mechanical","level":"Junior","exp":3,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":2,"role":"Engineer","gap":"Field commissioning depth","trainPri":"High","trainer":false,"notes":"Support completion profile"},{"id":"CV117","name":"Vikas JADHAV","title":"C&C Specialist / Commissioning Manager","disc":"Process","level":"Senior","exp":14,"sectors":["chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":1,"mech":0,"proc":1,"qa":0,"doc":1,"com":5,"start":5,"lead":4,"role":"Manager","gap":"Water/Fertilizers exposure","trainPri":"Medium","trainer":true,"notes":"Strong international process/startup profile"},{"id":"CV118","name":"Miloud JBAIHI","title":"I&C Commissioning Specialist","disc":"Instrumentation","level":"Senior","exp":10,"sectors":["water","fert","energy"],"lv":1,"hv":0,"plc":1,"dcs":1,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Leadership depth","trainPri":"Medium","trainer":false,"notes":"Strong field I&C profile"},{"id":"CV119","name":"Marouane JELLAL","title":"Electrical C&C Technician","disc":"Electrical","level":"Technician","exp":10,"sectors":["water"],"lv":1,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":3,"start":3,"lead":2,"role":"Technician","gap":"Engineering depth","trainPri":"Medium","trainer":false,"notes":"Reliable execution technician"},{"id":"CV120","name":"Hamid KARMANE","title":"HSSEC Commissioning Specialist","disc":"HSE","level":"Senior","exp":16,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":4,"start":4,"lead":4,"role":"Specialist","gap":"Technical process depth","trainPri":"Medium","trainer":true,"notes":"Critical profile for commissioning safety"},{"id":"CV121","name":"Mohamed KEHILI","title":"Commissioning Manager","disc":"Process","level":"Senior","exp":12,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":1,"com":5,"start":5,"lead":5,"role":"Manager","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Strategic desalination manager"},{"id":"CV122","name":"Imane KHALDOUNE","title":"Completion Specialist","disc":"Completion","level":"Senior","exp":6,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":3,"role":"Coordinator","gap":"Field execution depth","trainPri":"Medium","trainer":false,"notes":"Strong MC, punch and dossier profile"},{"id":"CV123","name":"Khadija KHEDRAOUI","title":"Senior C&C Digital Specialist","disc":"Multi","level":"Senior","exp":10,"sectors":["water","fert","chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":4,"start":3,"lead":4,"role":"Specialist","gap":"Field startup depth","trainPri":"Low","trainer":true,"notes":"Strategic digital profile"},{"id":"CV124","name":"El M. KHOUYA","title":"Senior Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":8,"sectors":["fert"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":4,"lead":3,"role":"Specialist","gap":"Experience consistency to confirm","trainPri":"Medium","trainer":false,"notes":"Good substation/HV profile"},{"id":"CV125","name":"Yahya KSIROU","title":"C&C Technician","disc":"Completion","level":"Junior","exp":1,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":1,"doc":1,"com":3,"start":2,"lead":2,"role":"Technician","gap":"Field commissioning depth","trainPri":"High","trainer":false,"notes":"Junior profile"},{"id":"CV126","name":"Amine LAAFOU","title":"Senior C&C Specialist - Electrical Lead","disc":"Electrical","level":"Senior","exp":10,"sectors":["water","energy"],"lv":1,"hv":1,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"Key electrical commissioning"},{"id":"CV127","name":"Youssef LAMRAOUI","title":"Senior Electrical C&C Specialist","disc":"Electrical","level":"Senior","exp":13,"sectors":["energy"],"lv":1,"hv":1,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"Water process depth","trainPri":"Medium","trainer":true,"notes":"Strategic PV/HV commissioning"},{"id":"CV128","name":"Ali LITI","title":"I&C Commissioning Specialist","disc":"Instrumentation","level":"Junior","exp":5,"sectors":["water"],"lv":0,"hv":0,"plc":1,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":4,"start":3,"lead":2,"role":"Specialist","gap":"Leadership","trainPri":"Medium","trainer":false,"notes":"Good junior field instrumentation"},{"id":"CV129","name":"Livingston GEORGE","title":"Mechanical C&C Specialist","disc":"Mechanical","level":"Senior","exp":13,"sectors":["chem","energy"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":0,"qa":0,"doc":0,"com":5,"start":4,"lead":4,"role":"Specialist","gap":"Water/OCP exposure","trainPri":"Medium","trainer":true,"notes":"International EPC mechanical/piping"},{"id":"CV130","name":"Kamal LOTFI","title":"Principal C&C Specialist - Water","disc":"Process","level":"Expert","exp":25,"sectors":["water"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":1,"proc":1,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Lead","gap":"None critical","trainPri":"Low","trainer":true,"notes":"TOP water expert"},{"id":"CV139","name":"Mohamed MOUJANI","title":"Principal C&C Manager","disc":"Multi","level":"Expert","exp":15,"sectors":["water","fert","energy"],"lv":1,"hv":1,"plc":1,"dcs":1,"mech":1,"proc":1,"qa":0,"doc":1,"com":5,"start":5,"lead":5,"role":"Manager","gap":"","trainPri":"Low","trainer":true,"notes":"Top manager"},{"id":"CV163","name":"Yassine ZAHIR","title":"Senior C&C Specialist","disc":"Multi","level":"Senior","exp":8,"sectors":["fert"],"lv":0,"hv":0,"plc":0,"dcs":0,"mech":0,"proc":0,"qa":0,"doc":0,"com":5,"start":5,"lead":5,"role":"Commissioning Lead","gap":"","trainPri":"Low","trainer":true,"notes":"Leadership + organisation + commissioning"}];
+
+// ===== STATE =====
+var sheetData=[],overrides={},customs=[],selected=new Set(),filtered=[],activeDisc='',editId=null;
+
+function getData(){
+  var base=BASE.map(function(p){return overrides[p.id]?Object.assign({},p,overrides[p.id]):p;});
+  var baseIds=base.map(function(p){return p.id;});
+  var extra=sheetData.filter(function(p){return baseIds.indexOf(p.id)<0;});
+  return base.concat(extra).concat(customs.filter(function(p){return sheetData.every(function(s){return s.id!==p.id;})&&baseIds.indexOf(p.id)<0;}));
+}
+
+// ===== SYNC =====
+var SCRIPT_URL='https://script.google.com/macros/s/AKfycbxpsv0WA0i2u7zDrwyOb0v51-h0isHiMQokHJ__shTmyZmFyPgBBHgExevEGI3x9uzM/exec';
+
+function processData(rows){
+  if(!Array.isArray(rows)){rows=[];}
+  sheetData=rows.filter(function(r){return r.id&&r.name;}).map(function(r){
+    r.sectors=[];
+    if(r.water==1||r.water==='1'||r.water===true)r.sectors.push('water');
+    if(r.fert==1||r.fert==='1'||r.fert===true)r.sectors.push('fert');
+    if(r.energy==1||r.energy==='1'||r.energy===true)r.sectors.push('energy');
+    if(r.chem==1||r.chem==='1'||r.chem===true)r.sectors.push('chem');
+    ['exp','lv','hv','plc','dcs','mech','proc','qa','doc','com','start','lead'].forEach(function(k){r[k]=parseInt(r[k])||0;});
+    r.trainer=r.trainer===true||r.trainer==='true'||r.trainer==='Yes';
+    r.id=String(r.id||'');r.name=String(r.name||'');
+    return r;
+  });
+  setSS('ok','✅ Synced — '+sheetData.length+' profiles from shared database · '+new Date().toLocaleTimeString());
+  buildDiscs();applyF();
+}
+
+function syncNow(){
+  setSS('syncing','Syncing with shared database...');
+  // Remove old script tag if exists
+  var old=document.getElementById('jsonp-script');
+  if(old)old.parentNode.removeChild(old);
+  // Create JSONP request
+  var script=document.createElement('script');
+  script.id='jsonp-script';
+  script.src=SCRIPT_URL+'?callback=processData&t='+Date.now();
+  script.onerror=function(){
+    setSS('error','⚠️ Cannot reach shared database — showing 163 local profiles');
+    buildDiscs();applyF();
+  };
+  document.head.appendChild(script);
+}
+function setSS(state,msg){
+  var d=document.getElementById('sync-dot'),s=document.getElementById('sync-status');
+  d.style.background=state==='ok'?'#4caf50':state==='error'?'#f44336':'#ff9800';
+  d.className='sync-dot'+(state==='syncing'?' syncing':'');
+  s.textContent=msg;
+}
+
+var AC=['#e1f5ee|#0a5c3a','#e6f1fb|#1558a0','#faeeda|#7a4d0b','#eeedfe|#3c3489','#faece7|#993c1d'];
+function av(n){var p=n.split(' '),i=(p[0][0]+(p[p.length-1][0]||'')).toUpperCase(),c=AC[n.charCodeAt(0)%AC.length].split('|');return'<div class="avatar" style="background:'+c[0]+';color:'+c[1]+'">'+i+'</div>';}
+function sk(v,l){return'<div class="sk '+(v?'sk-on':'sk-off')+'">'+l+'</div>';}
+function bar(v,l){return'<div class="score-item"><div class="score-lbl">'+l+'</div><div class="score-bg"><div class="score-fill" style="width:'+(v*20)+'%"></div></div></div>';}
+function si(s){return{water:'💧',fert:'🌿',energy:'⚡',chem:'🧪'}[s]||s;}
+
+function buildDiscs(){
+  var D=getData(),set={};
+  D.forEach(function(p){if(p.disc)set[p.disc.split('/')[0].trim()]=1;});
+  var discs=Object.keys(set).sort();
+  var h='<div class="disc-pill '+(activeDisc===''?'active':'')+'" onclick="setDisc(\'\',this)">All disciplines</div>';
+  discs.forEach(function(d){h+='<div class="disc-pill '+(activeDisc===d?'active':'')+'" onclick="setDisc(\''+d+'\',this)">'+d+'</div>';});
+  document.getElementById('disc-pills').innerHTML=h;
+}
+function setDisc(d,el){activeDisc=d;document.querySelectorAll('.disc-pill').forEach(function(p){p.classList.remove('active');});el.classList.add('active');applyF();}
+
+function resetFilters(){
+  ['f-sec','f-lev','f-rol','f-ski','f-trp','f-tra'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('f-txt').value='';
+  document.getElementById('f-exp').value=0;document.getElementById('ev').textContent='0y';
+  activeDisc='';buildDiscs();applyF();
+}
+
+function applyF(){
+  var D=getData();
+  var sec=document.getElementById('f-sec').value,lev=document.getElementById('f-lev').value;
+  var rol=document.getElementById('f-rol').value,ski=document.getElementById('f-ski').value;
+  var trp=document.getElementById('f-trp').value,tra=document.getElementById('f-tra').value;
+  var exp=parseInt(document.getElementById('f-exp').value)||0;
+  var txt=document.getElementById('f-txt').value.toLowerCase();
+  filtered=D.filter(function(p){
+    if(!p.name)return false;
+    if(sec&&(!p.sectors||p.sectors.indexOf(sec)<0))return false;
+    if(lev&&p.level!==lev)return false;
+    if(rol&&(!p.role||p.role.toLowerCase().indexOf(rol.toLowerCase())<0))return false;
+    if(ski&&!p[ski])return false;
+    if(trp&&p.trainPri!==trp)return false;
+    if(tra==='yes'&&!p.trainer)return false;
+    if(tra==='no'&&p.trainer)return false;
+    if(p.exp<exp)return false;
+    if(activeDisc&&(!p.disc||p.disc.toLowerCase().indexOf(activeDisc.toLowerCase())<0))return false;
+    if(txt&&[p.name,p.title,p.disc,p.notes||'',p.gap||''].join(' ').toLowerCase().indexOf(txt)<0)return false;
+    return true;
+  });
+  renderCards();updateStats();
+}
+
+function renderCards(){
+  var g=document.getElementById('results-grid');
+  if(!filtered.length){g.innerHTML='<div class="no-results">No profiles match the filters</div>';return;}
+  var h='';
+  filtered.forEach(function(p){
+    var isSel=selected.has(p.id);
+    var isSheet=sheetData.some(function(s){return s.id===p.id;});
+    var isBase=BASE.some(function(b){return b.id===p.id;});
+    var priC=p.trainPri==='High'?'br':p.trainPri==='Low'?'bg':'bs';
+    var badges='<span class="badge bd">'+(p.disc?p.disc.split('/')[0]:'?')+'</span><span class="badge bl">'+(p.level||'?')+' · '+(p.exp||0)+'y</span>';
+    if(p.sectors)p.sectors.forEach(function(s){badges+='<span class="badge bs">'+si(s)+'</span>';});
+    if(p.trainer)badges+='<span class="badge bg">🎓</span>';
+    if(p.trainPri)badges+='<span class="badge '+priC+'">'+p.trainPri+'</span>';
+    if(isSheet&&!isBase)badges+='<span class="sheet-badge">📊</span>';
+    h+='<div class="card'+(isSel?' selected':'')+'" id="card-'+p.id+'">'
+      +'<button class="edit-btn" onclick="event.stopPropagation();openModal(\''+p.id+'\')">✏️ Edit</button>'
+      +'<div class="card-header" onclick="toggle(\''+p.id+'\')">'
+      +av(p.name)
+      +'<div style="flex:1;min-width:0"><div class="card-name">'+p.name+'</div><div class="card-title-text">'+(p.title||'')+'</div></div>'
+      +(isSel?'<span class="check-icon">✓</span>':'')
+      +'</div>'
+      +'<div onclick="toggle(\''+p.id+'\')"><div class="badges">'+badges+'</div>'
+      +'<div class="skills-row">'+sk(p.lv,'LV')+sk(p.hv,'HV')+sk(p.plc,'PLC')+sk(p.dcs,'DCS')+sk(p.mech,'Mec')+sk(p.proc,'Pro')+sk(p.qa,'QA')+sk(p.doc,'Doc')+'</div>'
+      +'<div class="scores">'+bar(p.com,'COM')+bar(p.start,'Start')+bar(p.lead,'Lead')+'</div>'
+      +'<div class="card-foot"><span>'+(p.role||'')+'</span><span>'+(p.gap&&p.gap.length>2&&p.gap.toLowerCase().indexOf('none')<0?'⚠ '+p.gap.slice(0,26):'')+'</span></div>'
+      +'</div></div>';
+  });
+  g.innerHTML=h;
+}
+
+function updateStats(){
+  var D=getData();
+  var avgExp=filtered.length?Math.round(filtered.reduce(function(a,p){return a+(p.exp||0);},0)/filtered.length):0;
+  document.getElementById('s-tot').textContent=filtered.length;
+  document.getElementById('s-sel').textContent=selected.size;
+  document.getElementById('s-tra').textContent=filtered.filter(function(p){return p.trainer;}).length;
+  document.getElementById('s-hi').textContent=filtered.filter(function(p){return p.trainPri==='High';}).length;
+  document.getElementById('s-exp').textContent=avgExp;
+  document.getElementById('tc').textContent=selected.size;
+  document.getElementById('hdr-count').textContent=D.length+' profiles';
+}
+
+function toggle(id){if(selected.has(id))selected.delete(id);else selected.add(id);renderCards();updateStats();}
+
+function renderTraining(){
+  var D=getData(),sel=D.filter(function(p){return selected.has(p.id);});
+  document.getElementById('aff-count').textContent=sel.length;
+  var al=document.getElementById('aff-list'),tl=document.getElementById('train-list'),cp=document.getElementById('cov-panel');
+  if(!sel.length){al.innerHTML='<p style="color:#aaa">No profiles assigned.</p>';tl.innerHTML='<p style="color:#aaa">—</p>';cp.style.display='none';return;}
+  al.innerHTML=sel.map(function(p){return'<div class="aff-item">'+av(p.name)+'<div style="flex:1;margin-left:8px"><div class="aff-name">'+p.name+'</div><div class="aff-meta">'+(p.disc?p.disc.split('/')[0]:'?')+' · '+(p.level||'')+' · '+(p.exp||0)+'y</div></div><span class="pri p-'+((p.trainPri||'med').toLowerCase())+'">'+p.trainPri+'</span><button class="rm-btn" onclick="toggle(\''+p.id+'\');renderTraining()">×</button></div>';}).join('');
+  var gaps=sel.filter(function(p){return p.gap&&p.gap.length>1&&p.gap.toLowerCase().indexOf('none')<0;});
+  tl.innerHTML=gaps.length?gaps.map(function(p){return'<div class="train-card"><strong>'+p.name+'</strong><div style="font-size:11px;color:#7a4d0b;margin-top:2px">⚠ '+p.gap+'</div><div style="font-size:10px;color:#aaa">Priority: '+p.trainPri+' · Trainer: '+(p.trainer?'✓ Yes':'✗ No')+'</div></div>';}).join(''):'<p style="color:#3b6d11">✅ No critical skill gaps.</p>';
+  var skills=['lv','hv','plc','dcs','mech','proc','qa','doc'],labels={lv:'LV',hv:'HV',plc:'PLC',dcs:'DCS',mech:'Mechanical',proc:'Process',qa:'QA/QC',doc:'Doc.'};
+  document.getElementById('cov-grid').innerHTML=skills.map(function(s){var c=sel.filter(function(p){return p[s];}).length,pct=Math.round(c/sel.length*100),col=pct>=50?'#2d5a2d':pct>=20?'#ba7517':'#e24b4a';return'<div class="cov-cell"><div style="font-size:10px;font-weight:700;color:#555">'+labels[s]+'</div><div style="font-size:20px;font-weight:700;color:'+col+'">'+c+'</div><div style="font-size:10px;color:#aaa">'+pct+'%</div></div>';}).join('');
+  cp.style.display='';
+}
+
+function exportCSV(){var D=getData(),sel=D.filter(function(p){return selected.has(p.id);});if(!sel.length){alert('No profiles assigned.');return;}var h='ID,Name,Title,Discipline,Level,Exp,Sectors,COM,Lead,Training,Trainer,Gap,Notes';var rows=sel.map(function(p){return[p.id,'"'+p.name+'"','"'+(p.title||'')+'"',p.disc,p.level,p.exp,'"'+(p.sectors||[]).join('/')+'"',p.com,p.lead,p.trainPri,p.trainer?'Yes':'No','"'+(p.gap||'')+'"','"'+(p.notes||'')+'"'].join(',');});var blob=new Blob([[h].concat(rows).join('\n')],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='team.csv';a.click();}
+function printTeam(){var D=getData(),sel=D.filter(function(p){return selected.has(p.id);});if(!sel.length){alert('No profiles assigned.');return;}var w=window.open('','_blank');w.document.write('<html><head><title>Team</title><style>body{font-family:Arial;font-size:12px;margin:20px}table{width:100%;border-collapse:collapse}th{background:#1a2e1a;color:#fff;padding:6px 8px;text-align:left}td{padding:5px 8px;border-bottom:1px solid #eee}</style></head><body><h2>Project Team</h2><p>'+new Date().toLocaleDateString()+' · '+sel.length+' people</p><table><thead><tr><th>Name</th><th>Discipline</th><th>Level</th><th>Exp</th><th>Role</th><th>Training</th><th>Gap</th></tr></thead><tbody>'+sel.map(function(p){return'<tr><td><strong>'+p.name+'</strong></td><td>'+(p.disc||'')+'</td><td>'+(p.level||'')+'</td><td>'+(p.exp||0)+'y</td><td>'+(p.role||'')+'</td><td>'+(p.trainPri||'')+'</td><td>'+(p.gap||'—')+'</td></tr>';}).join('')+'</tbody></table></body></html>');w.document.close();w.print();}
+
+function renderManage(){
+  var D=getData(),q=(document.getElementById('manage-search').value||'').toLowerCase(),lf=document.getElementById('manage-lev').value;
+  var list=D.filter(function(p){if(lf&&p.level!==lf)return false;if(!q)return true;return[p.name,p.disc||'',p.title||''].join(' ').toLowerCase().indexOf(q)>=0;});
+  document.getElementById('manage-count').textContent=D.length;
+  document.getElementById('manage-tbody').innerHTML=list.map(function(p){
+    var isBase=BASE.some(function(b){return b.id===p.id;}),isSheet=sheetData.some(function(s){return s.id===p.id;});
+    var actions='<button class="btn btn-secondary btn-sm" onclick="openModal(\''+p.id+'\')">✏️ Edit</button>';
+    if(!isBase&&!isSheet)actions+=' <button class="btn btn-danger btn-sm" onclick="delCustom(\''+p.id+'\')">🗑️</button>';
+    if(overrides[p.id])actions+=' <button class="btn btn-warn btn-sm" onclick="resetOneOv(\''+p.id+'\')">↺</button>';
+    return'<tr><td><strong>'+p.name+'</strong>'+(isSheet&&!isBase?'<span class="sheet-badge">📊</span>':'')+'</td><td>'+(p.disc?p.disc.split('/')[0]:'')+'</td><td>'+(p.level||'')+'</td><td>'+(p.exp||0)+'y</td><td>'+(p.sectors||[]).map(si).join(' ')+'</td><td><span class="pri p-'+((p.trainPri||'med').toLowerCase())+'">'+p.trainPri+'</span></td><td>'+actions+'</td></tr>';
+  }).join('');
+}
+
+function openModal(id){
+  editId=id||null;
+  if(id){var p=getData().find(function(x){return x.id===id;});if(!p)return;document.getElementById('modal-h2').textContent='Edit Profile';document.getElementById('modal-sub').textContent=p.name;fillForm(p);}
+  else{document.getElementById('modal-h2').textContent='Add New Profile';document.getElementById('modal-sub').textContent='';clearForm();}
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function clearForm(){['m-name','m-title','m-disc','m-role','m-gap','m-notes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('m-level').value='Senior';document.getElementById('m-exp').value=5;document.getElementById('m-trp').value='Medium';document.getElementById('m-trainer').value='false';['m-com','m-start','m-lead'].forEach(function(id){document.getElementById(id).value=3;});document.getElementById('lbl-com').textContent=3;document.getElementById('lbl-start').textContent=3;document.getElementById('lbl-lead').textContent=3;['water','fert','energy','chem','lv','hv','plc','dcs','mech','proc','qa','doc'].forEach(function(s){var el=document.getElementById('m-'+s);if(el)el.checked=false;});}
+function fillForm(p){document.getElementById('m-name').value=p.name||'';document.getElementById('m-title').value=p.title||'';document.getElementById('m-disc').value=p.disc||'';document.getElementById('m-level').value=p.level||'Senior';document.getElementById('m-exp').value=p.exp||0;document.getElementById('m-trp').value=p.trainPri||'Medium';document.getElementById('m-trainer').value=String(p.trainer||false);document.getElementById('m-role').value=p.role||'';document.getElementById('m-gap').value=p.gap||'';document.getElementById('m-notes').value=p.notes||'';document.getElementById('m-com').value=p.com||3;document.getElementById('lbl-com').textContent=p.com||3;document.getElementById('m-start').value=p.start||3;document.getElementById('lbl-start').textContent=p.start||3;document.getElementById('m-lead').value=p.lead||3;document.getElementById('lbl-lead').textContent=p.lead||3;['water','fert','energy','chem'].forEach(function(s){document.getElementById('m-'+s).checked=(p.sectors||[]).indexOf(s)>=0;});['lv','hv','plc','dcs','mech','proc','qa','doc'].forEach(function(s){document.getElementById('m-'+s).checked=!!p[s];});}
+function mkP(id){var sec=['water','fert','energy','chem'].filter(function(s){return document.getElementById('m-'+s).checked;});return{id:id||'CV'+Date.now(),name:document.getElementById('m-name').value.trim(),title:document.getElementById('m-title').value.trim(),disc:document.getElementById('m-disc').value.trim(),level:document.getElementById('m-level').value,exp:parseInt(document.getElementById('m-exp').value)||0,sectors:sec,lv:document.getElementById('m-lv').checked?1:0,hv:document.getElementById('m-hv').checked?1:0,plc:document.getElementById('m-plc').checked?1:0,dcs:document.getElementById('m-dcs').checked?1:0,mech:document.getElementById('m-mech').checked?1:0,proc:document.getElementById('m-proc').checked?1:0,qa:document.getElementById('m-qa').checked?1:0,doc:document.getElementById('m-doc').checked?1:0,com:parseInt(document.getElementById('m-com').value)||3,start:parseInt(document.getElementById('m-start').value)||3,lead:parseInt(document.getElementById('m-lead').value)||3,role:document.getElementById('m-role').value.trim()||'Specialist',gap:document.getElementById('m-gap').value.trim(),trainPri:document.getElementById('m-trp').value,trainer:document.getElementById('m-trainer').value==='true',notes:document.getElementById('m-notes').value.trim()};}
+function saveProfile(){
+  var name=document.getElementById('m-name').value.trim(),title=document.getElementById('m-title').value.trim(),disc=document.getElementById('m-disc').value.trim();
+  if(!name||!title||!disc){alert('Name, Title and Discipline are required.');return;}
+  var profile=mkP(editId);
+  if(editId){var isBase=BASE.some(function(b){return b.id===editId;}),isSheet=sheetData.some(function(s){return s.id===editId;});if(isBase||isSheet){overrides[editId]=profile;}else{var idx=-1;customs.forEach(function(c,i){if(c.id===editId)idx=i;});if(idx>=0)customs[idx]=profile;}}else{customs.push(profile);}
+  buildDiscs();applyF();renderManage();closeModal();
+}
+function delCustom(id){if(!confirm('Delete?'))return;customs=customs.filter(function(p){return p.id!==id;});selected.delete(id);buildDiscs();applyF();renderManage();}
+function resetOneOv(id){if(!confirm('Restore original?'))return;delete overrides[id];buildDiscs();applyF();renderManage();}
+
+function showTab(tab,el){
+  ['search','training','manage'].forEach(function(t){document.getElementById('tab-'+t).style.display=t===tab?'':'none';});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  if(tab==='training')renderTraining();
+  if(tab==='manage')renderManage();
+}
+
+syncNow();
+setInterval(syncNow,60000);
+</script>
+</body>
+</html>
